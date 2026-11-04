@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Accessible Learning Companion - Computer-Based Learning Tool</title>
+  <meta name="description" content="An accessible, computer-based learning application for students with intellectual disabilities. Features picture-based learning, speech synthesis, adaptive difficulty, and caregiver analytics.">
+  
+  <!-- Google Fonts: Nunito for warm, friendly, highly legible typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Chart.js CDN for interactive analytics charts (with automatic canvas fallback if offline) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-default font-size-normal">
+
+  <!-- =========================================================================
+       1. LOGIN VIEW (Authentication Screen)
+       ========================================================================= -->
+  <div id="view-login" class="login-view-screen" role="region" aria-label="Login Screen">
+    <div class="login-card-container">
+      <div class="login-card-header">
+        <div class="app-brand-badge">
+          <span class="brand-icon" aria-hidden="true">🌟</span>
+          <span class="brand-sub">Special Education Hub</span>
+        </div>
+        <h1 class="login-title">Accessible Learning Companion</h1>
+        <p class="login-welcome-text">
+          A gentle, joyful, and computer-based learning space designed with heart for every student.
+        </p>
+      </div>
+
+      <!-- Friendly Milo Welcome Graphic -->
+      <div class="login-mascot-card">
+        <div class="milo-mascot-placeholder" data-size="90"></div>
+        <div class="login-mascot-bubble">
+          <strong>Hi there! I'm Milo! 👋</strong>
+          <p>Please enter your email and password to enter your magical learning room.</p>
+        </div>
+      </div>
+
+      <!-- Friendly Error Message Box -->
+      <div id="login-error-message" class="login-error-alert" role="alert" aria-live="assertive"></div>
+
+      <!-- Login Form -->
+      <form id="login-form" class="login-form" novalidate onsubmit="event.preventDefault(); if (window.Auth) window.Auth.handleLogin(event); return false;">
+        <div class="form-group">
+          <label for="login-email">Email / User ID</label>
+          <div class="input-with-icon">
+            <span class="field-icon" aria-hidden="true">✉️</span>
+            <input type="email" id="login-email" class="form-control" placeholder="name@example.com" autocomplete="username" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <div class="input-with-icon">
+            <span class="field-icon" aria-hidden="true">🔒</span>
+            <input type="password" id="login-password" class="form-control" placeholder="Enter password" autocomplete="current-password" required>
+            <button type="button" id="toggle-password-visibility" class="field-addon-btn" aria-label="Show password">
+              <span aria-hidden="true">👁️</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-utilities-row">
+          <label class="checkbox-label" for="remember-me">
+            <input type="checkbox" id="remember-me">
+            <span class="custom-checkbox"></span>
+            <span>Remember me</span>
+          </label>
+          <a href="#forgot" id="forgot-password-link" class="link-text">Need help signing in?</a>
+        </div>
+
+        <button type="submit" id="login-submit-btn" class="btn btn-primary btn-block btn-lg">
+          <span>Sign In to Learning Hub</span>
+          <span aria-hidden="true">🚀</span>
+        </button>
+
+        <div style="margin-top:12px;">
+          <button type="button" id="autofill-demo-btn" class="btn btn-secondary btn-block">
+            <span>⚡ One-Click Auto-Fill & Enter</span>
+          </button>
+        </div>
+      </form>
+
+      <!-- Educational Prototype Notice -->
+      <footer class="login-card-footer">
+        <p class="demo-prototype-notice">
+          ℹ️ <strong>Demonstration Note:</strong> LocalStorage authentication is implemented for local prototype demonstration. Production deployments require secure backend token management.
+        </p>
+      </footer>
+    </div>
+  </div>
+
+
+  <!-- =========================================================================
+       APPLICATION SHELL (Top Bar, Sidebar, and Dynamic Views)
+       ========================================================================= -->
+  <div id="app-shell" class="app-shell-layout" style="display:none;">
+
+    <!-- TOP HEADER BAR -->
+    <header class="app-topbar" role="banner">
+      <div class="topbar-left">
+        <button id="mobile-menu-toggle" class="btn-icon-soft hamburger-btn" aria-label="Toggle Navigation Menu">
+          <span aria-hidden="true">☰</span>
+        </button>
+        <div class="app-logo-mark">
+          <span class="brand-sparkle" aria-hidden="true">🌟</span>
+          <span class="brand-title">Learning Companion</span>
+        </div>
+      </div>
+
+      <div class="topbar-center">
+        <!-- Global Audio Control Bar -->
+        <div class="global-audio-dock" role="region" aria-label="Global Speech & Audio Controls">
+          <button id="global-audio-repeat-btn" class="btn-icon-dock" title="Repeat last audio instruction" aria-label="Repeat Audio">
+            <span aria-hidden="true">🔁</span>
+            <span class="btn-dock-lbl">Repeat</span>
+          </button>
+          <button id="global-audio-stop-btn" class="btn-icon-dock" title="Stop speaking" aria-label="Stop Audio">
+            <span aria-hidden="true">⏹️</span>
+            <span class="btn-dock-lbl">Stop</span>
+          </button>
+          <button id="global-audio-mute-btn" class="btn-icon-dock" title="Mute/Unmute audio" aria-label="Mute Audio">
+            <span aria-hidden="true">🔊</span>
+            <span class="btn-dock-lbl">Sound</span>
+          </button>
+
+          <!-- Language Selector -->
+          <div class="lang-selector-pill">
+            <label for="global-lang-switch" class="sr-only">Choose Language</label>
+            <select id="global-lang-switch" class="select-dock">
+              <option value="en">English (US)</option>
+              <option value="kn">ಕನ್ನಡ (Kannada)</option>
+            </select>
+          </div>
+
+          <!-- Active Speech Wave Indicator -->
+          <div id="global-speech-indicator" class="speech-wave-bars" title="Milo is speaking" aria-hidden="true">
+            <span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="topbar-right">
+        <!-- Accessible Quick-Toggle: High Contrast Mode -->
+        <button id="quick-contrast-toggle" class="btn-icon-soft quick-access-btn" title="Toggle High Contrast Mode" aria-label="High Contrast Mode">
+          <span aria-hidden="true">🌓</span>
+          <span class="sr-only">Toggle High Contrast</span>
+        </button>
+
+        <!-- Accessible Quick-Toggle: Font Size Step -->
+        <button id="quick-font-toggle" class="btn-icon-soft quick-access-btn" title="Adjust Font Size" aria-label="Adjust Font Size">
+          <span aria-hidden="true">🔤</span>
+          <span class="sr-only">Font Size</span>
+        </button>
+
+        <!-- Student Profile Selector Pill -->
+        <div class="active-student-dock">
+          <label for="header-student-switch" class="sr-only">Current Student</label>
+          <select id="header-student-switch" class="student-select-dropdown" aria-label="Select active student profile">
+            <!-- Populated dynamically via App.js -->
+          </select>
+        </div>
+
+        <!-- Safe Sign Out Button -->
+        <button class="btn-icon-soft action-logout" title="Sign out safely" aria-label="Sign Out">
+          <span aria-hidden="true">🚪</span>
+        </button>
+      </div>
+    </header>
+
+
+    <!-- SIDEBAR NAVIGATION & MAIN BODY CONTAINER -->
+    <div class="app-body-container">
+      
+      <!-- SIDEBAR -->
+      <nav id="app-sidebar" class="app-sidebar" role="navigation" aria-label="Main Application Menu">
+        <div class="sidebar-section-group">
+          <span class="sidebar-section-title">LEARN & PLAY</span>
+          <ul class="sidebar-nav-list">
+            <li>
+              <a href="#student-dashboard" class="sidebar-nav-item active" data-route="student-dashboard">
+                <span class="nav-icon" aria-hidden="true">🏠</span>
+                <span class="nav-label">My Dashboard</span>
+              </a>
+            </li>
+            <li>
+              <a href="#learning-library" class="sidebar-nav-item" data-route="learning-library">
+                <span class="nav-icon" aria-hidden="true">🎨</span>
+                <span class="nav-label">Learning Library</span>
+              </a>
+            </li>
+            <li>
+              <a href="#activities" class="sidebar-nav-item" data-route="activities">
+                <span class="nav-icon" aria-hidden="true">🎮</span>
+                <span class="nav-label">Interactive Games</span>
+              </a>
+            </li>
+            <li>
+              <a href="#practice" class="sidebar-nav-item" data-route="practice">
+                <span class="nav-icon" aria-hidden="true">🔄</span>
+                <span class="nav-label">Practice & Revision</span>
+              </a>
+            </li>
+            <li>
+              <a href="#daily-skills" class="sidebar-nav-item" data-route="daily-skills">
+                <span class="nav-icon" aria-hidden="true">🧼</span>
+                <span class="nav-label">Daily-Life Skills</span>
+              </a>
+            </li>
+            <li>
+              <a href="#milo-assistant" class="sidebar-nav-item" data-route="milo-assistant">
+                <span class="nav-icon" aria-hidden="true">🦊</span>
+                <span class="nav-label">Ask Milo (Buddy)</span>
+              </a>
+            </li>
+            <li>
+              <a href="#rewards" class="sidebar-nav-item" data-route="rewards">
+                <span class="nav-icon" aria-hidden="true">⭐</span>
+                <span class="nav-label">Rewards & Stars</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <div class="sidebar-section-group">
+          <span class="sidebar-section-title">TEACHER & CAREGIVER</span>
+          <ul class="sidebar-nav-list">
+            <li>
+              <a href="#teacher-dashboard" class="sidebar-nav-item" data-route="teacher-dashboard">
+                <span class="nav-icon" aria-hidden="true">👩‍🏫</span>
+                <span class="nav-label">Teacher Portal</span>
+              </a>
+            </li>
+            <li>
+              <a href="#progress" class="sidebar-nav-item" data-route="progress">
+                <span class="nav-icon" aria-hidden="true">📊</span>
+                <span class="nav-label">Student Progress</span>
+              </a>
+            </li>
+            <li>
+              <a href="#reports" class="sidebar-nav-item" data-route="reports">
+                <span class="nav-icon" aria-hidden="true">📄</span>
+                <span class="nav-label">Reports & Analytics</span>
+              </a>
+            </li>
+            <li>
+              <a href="#student-profiles" class="sidebar-nav-item" data-route="student-profiles">
+                <span class="nav-icon" aria-hidden="true">👥</span>
+                <span class="nav-label">Student Profiles</span>
+              </a>
+            </li>
+            <li>
+              <a href="#cms" class="sidebar-nav-item" data-route="cms">
+                <span class="nav-icon" aria-hidden="true">✏️</span>
+                <span class="nav-label">Content Management</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <div class="sidebar-section-group">
+          <span class="sidebar-section-title">SETTINGS & SUPPORT</span>
+          <ul class="sidebar-nav-list">
+            <li>
+              <a href="#accessibility" class="sidebar-nav-item" data-route="accessibility">
+                <span class="nav-icon" aria-hidden="true">♿</span>
+                <span class="nav-label">Accessibility Settings</span>
+              </a>
+            </li>
+            <li>
+              <a href="#app-settings" class="sidebar-nav-item" data-route="app-settings">
+                <span class="nav-icon" aria-hidden="true">⚙️</span>
+                <span class="nav-label">Application Settings</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <div class="sidebar-bottom-badge">
+          <button class="btn btn-outline btn-sm btn-block action-logout">
+            <span>Sign Out</span> <span>👋</span>
+          </button>
+        </div>
+      </nav>
+
+
+      <!-- MAIN CONTENT VIEWPORTS -->
+      <main id="app-main-content" class="app-main-viewport" role="main">
+
+        <!-- ===================================================================
+             VIEW 2: STUDENT DASHBOARD
+             =================================================================== -->
+        <section id="view-student-dashboard" class="app-view-container active">
+          
+          <!-- Welcoming Header Hero -->
+          <div class="dashboard-hero-banner">
+            <div class="hero-text-side">
+              <span id="dashboard-student-level" class="badge-difficulty beginner">BEGINNER LEVEL</span>
+              <h2 id="dashboard-greeting-text" class="dashboard-greeting-title">
+                Hello, <strong>Friend</strong>! ☀️
+              </h2>
+              <p class="dashboard-greeting-sub">
+                What cheerful pictures would you like to explore today? Milo is ready to practice with you!
+              </p>
+            </div>
+            <div class="hero-avatar-side">
+              <div id="dashboard-student-avatar" class="large-student-avatar">👦</div>
+            </div>
+          </div>
+
+          <!-- Quick Stats Pill Row -->
+          <div class="dashboard-metrics-row">
+            <div class="dashboard-stat-chip">
+              <span class="chip-icon">⭐</span>
+              <div class="chip-data">
+                <span class="chip-val" id="dashboard-stars-count">45 ⭐</span>
+                <span class="chip-lbl">Stars Collected</span>
+              </div>
+            </div>
+            <div class="dashboard-stat-chip">
+              <span class="chip-icon">🔥</span>
+              <div class="chip-data">
+                <span class="chip-val" id="dashboard-streak-count">3 Days</span>
+                <span class="chip-lbl">Learning Streak</span>
+              </div>
+            </div>
+            <div class="dashboard-stat-chip">
+              <span class="chip-icon">🎯</span>
+              <div class="chip-data">
+                <span class="chip-val">Positive & Safe</span>
+                <span class="chip-lbl">No Time Pressure</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recommended "Continue Learning" Card (Adaptive Engine Powered) -->
+          <div class="dashboard-section-block">
+            <h3 class="section-title-clean">Continue Learning</h3>
+            <div id="dashboard-continue-card" class="continue-learning-card">
+              <!-- Rendered via App.renderStudentDashboard() -->
+            </div>
+          </div>
+
+          <!-- Quick Access to Learning Categories -->
+          <div class="dashboard-section-block">
+            <div class="section-title-row">
+              <h3 class="section-title-clean">Picture Learning Categories</h3>
+              <a href="#learning-library" data-route="learning-library" class="view-all-link">View All Lessons ➡️</a>
+            </div>
+            <div id="dashboard-quick-categories" class="quick-categories-grid">
+              <!-- Rendered via App.js -->
+            </div>
+          </div>
+
+          <!-- Recently Completed Lessons & Milo Motivation -->
+          <div class="dashboard-split-grid">
+            <div class="split-col-card">
+              <h4 class="card-inner-title">Recently Completed Activities 🏆</h4>
+              <div id="dashboard-recent-lessons" class="mini-activities-list">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+
+            <div class="split-col-card milo-tip-card">
+              <div class="milo-mascot-placeholder" data-size="75"></div>
+              <div>
+                <h4 class="card-inner-title">Milo's Cheerful Note 💡</h4>
+                <p style="font-size:1.05rem;color:var(--color-text);">
+                  "Every small step makes your brain stronger! Take your time, smile, and have fun exploring!"
+                </p>
+                <button class="btn btn-primary btn-sm" style="margin-top:10px;" data-route="milo-assistant">
+                  Chat with Milo 💬
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+
+        <!-- ===================================================================
+             VIEW 3: LEARNING LIBRARY
+             =================================================================== -->
+        <section id="view-learning-library" class="app-view-container">
+          <div class="view-header-row">
+            <div>
+              <h2 class="view-title">Picture-Based Learning Library 📚</h2>
+              <p class="view-sub">Explore rich, colourful lessons with simple spoken pronunciations and visual examples.</p>
+            </div>
+            <div class="library-search-wrapper">
+              <input type="text" id="lesson-search-input" class="form-control" placeholder="🔍 Search lesson (e.g. Red, Circle, Cat)..." aria-label="Search lessons">
+            </div>
+          </div>
+
+          <!-- Category Filter Chips -->
+          <div id="lesson-category-chips" class="category-chips-bar" role="toolbar" aria-label="Filter lessons by category">
+            <!-- Rendered by LessonModule -->
+          </div>
+
+          <!-- Lesson Cards Grid -->
+          <div id="lesson-cards-grid" class="lessons-grid">
+            <!-- Rendered by LessonModule -->
+          </div>
+        </section>
+
+
+        <!-- ===================================================================
+             VIEW 4: INTERACTIVE ACTIVITIES
+             =================================================================== -->
+        <section id="view-activities" class="app-view-container">
+          <div class="view-header-row">
+            <div>
+              <h2 class="view-title">Interactive Learning Games 🎮</h2>
+              <p class="view-sub">Eight fun, positive activities designed to reinforce concepts without time pressure.</p>
+            </div>
+            <div class="activity-top-actions">
+              <button id="activity-voice-answer-btn" class="btn btn-outline voice-input-btn" aria-label="Answer with voice microphone">
+                <span>🎤 Voice Answer</span>
+              </button>
+              <button id="activity-restart-btn" class="btn btn-secondary" aria-label="Restart activity">
+                <span>🔄 Restart</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Activity Selection Tabs -->
+          <div class="activity-tabs-scroll-container">
+            <div class="activity-tabs-bar" role="tablist">
+              <button class="activity-tab-btn active" data-activity="pic-select" role="tab">🖼️ Picture Selection</button>
+              <button class="activity-tab-btn" data-activity="matching" role="tab">🎯 Matching Pairs</button>
+              <button class="activity-tab-btn" data-activity="drag-drop" role="tab">📦 Category Sorter</button>
+              <button class="activity-tab-btn" data-activity="quiz" role="tab">❓ Picture Quiz</button>
+              <button class="activity-tab-btn" data-activity="memory" role="tab">🃏 Memory Match</button>
+              <button class="activity-tab-btn" data-activity="sorting" role="tab">🧺 Sorting Game</button>
+              <button class="activity-tab-btn" data-activity="sequence" role="tab">🔢 Step Sequencing</button>
+              <button class="activity-tab-btn" data-activity="audio-id" role="tab">🎧 Audio Identification</button>
+            </div>
+          </div>
+
+          <!-- Live Activity Game Board & Metrics Bar -->
+          <div class="game-hud-bar">
+            <div class="hud-item">
+              <span class="hud-label">Current Attempts:</span>
+              <strong id="activity-attempts-count" class="hud-value">0</strong>
+            </div>
+            <div class="hud-item">
+              <span class="hud-label">Correct:</span>
+              <strong id="activity-score-count" class="hud-value" style="color:var(--color-success);">0</strong>
+            </div>
+            <div class="hud-item">
+              <span class="hud-label">Gentle Timer:</span>
+              <strong id="activity-timer-display" class="hud-value">0:00</strong>
+            </div>
+          </div>
+
+          <!-- Immediate Feedback Alert Card -->
+          <div id="activity-feedback-card" class="practice-feedback-banner" style="display:none;" role="status"></div>
+
+          <!-- Main Interactive Stage -->
+          <div id="activity-stage" class="activity-main-stage">
+            <!-- Dynamic game rendered by ActivitiesModule -->
+          </div>
+        </section>
+
+
+        <!-- ===================================================================
+             VIEW 5: PRACTICE AND REVISION
+             =================================================================== -->
+        <section id="view-practice" class="app-view-container">
+          <div class="view-header-row">
+            <div>
+              <h2 class="view-title">Practice & Revision Room 🔄</h2>
+              <p class="view-sub">Review completed lessons, repeat questions at your own gentle pace, and flip cards.</p>
+            </div>
+          </div>
+
+          <div class="flashcard-deck-container">
+            <div id="flashcard-counter" class="flashcard-counter-tag">Card 1 of 12</div>
+
+            <!-- 3D Interactive Flip Flashcard -->
+            <div id="revision-flashcard" class="flashcard-card-3d" tabindex="0" role="button" aria-label="Tap to flip revision flashcard">
+              <div class="flashcard-flipper">
+                <!-- Front side -->
+                <div class="flashcard-face flashcard-front">
+                  <div id="flashcard-front-visual" class="flashcard-visual">
+                    <!-- SVG / visual rendered dynamically -->
+                  </div>
+                  <h3 id="flashcard-title" class="flashcard-term-title">Red Colour</h3>
+                  <p class="flashcard-hint-text">👆 Tap anywhere or press Flip to reveal explanation</p>
+                </div>
+
+                <!-- Back side -->
+                <div class="flashcard-face flashcard-back">
+                  <span class="flashcard-badge">Explanation</span>
+                  <p id="flashcard-text" class="flashcard-explanation-text">
+                    Red is a bright and warm colour. Strawberries and ripe apples are red.
+                  </p>
+                  <button id="flashcard-speak-btn" class="btn btn-secondary btn-sm" aria-label="Listen to card">
+                    🔊 Listen to Card
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Flashcard Controls -->
+            <div class="flashcard-controls-row">
+              <button id="flashcard-flip-btn" class="btn btn-secondary btn-lg">
+                <span>🔄 Flip Card</span>
+              </button>
+              <button id="flashcard-next-btn" class="btn btn-primary btn-lg">
+                <span>Next Card ➡️</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ===================================================================
+             VIEW 6: REWARDS AND ACHIEVEMENTS
+             =================================================================== -->
+        <section id="view-rewards" class="app-view-container">
+          <div class="view-header-row">
+            <div>
+              <h2 class="view-title">Rewards & Achievements Shelf ⭐</h2>
+              <p class="view-sub">Celebrate your hard work! Every completed lesson and practice earns shiny stars.</p>
+            </div>
+            <div>
+              <button id="trigger-celebration-stars-btn" class="btn btn-primary" aria-label="Celebrate with star fanfare">
+                <span>🎉 Celebrate!</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="rewards-banner-header">
+            <div class="stars-trophy-display">
+              <span style="font-size:4rem;" aria-hidden="true">🏆</span>
+              <h3 id="rewards-total-stars-banner">45 Stars Collected! 🌟</h3>
+              <p>Keep learning to unlock new badges for your trophy room!</p>
+            </div>
+          </div>
+
+          <!-- Badges Grid Shelf -->
+          <h3 class="section-title-clean" style="margin-top:24px;">Your Achievement Badges</h3>
+          <div id="rewards-badges-shelf" class="badges-shelf-grid">
+            <!-- Rendered dynamically via App.renderRewardsShelf() -->
+          </div>
+        </section>
+
+
+        <!-- ===================================================================
+             VIEW 7: STUDENT PROGRESS & ANALYTICS
+             =================================================================== -->
+        <section id="view-progress" class="app-view-container">
+          <div class="view-header-row">
+            <div>
+              <h2 class="view-title">My Learning Progress 📊</h2>
+              <p class="view-sub">Clear visual indicators tracking accuracy, completed topics, and time spent learning.</p>
+            </div>
+            <div class="report-export-buttons">
+              <button id="export-report-csv-btn" class="btn btn-outline" aria-label="Export progress data to CSV">
+                <span>📥 Export CSV</span>
+              </button>
+              <button id="print-report-btn" class="btn btn-secondary" aria-label="Print report">
+                <span>🖨️ Print Report</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Top Statistics Cards -->
+          <div class="metrics-cards-grid">
+            <div class="stat-card">
+              <span class="stat-icon-badge">🎯</span>
+              <span class="stat-value" id="stat-avg-accuracy">85%</span>
+              <span class="stat-title">Average Accuracy</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-icon-badge">📘</span>
+              <span class="stat-value" id="stat-lessons-count">12</span>
+              <span class="stat-title">Lessons Completed</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-icon-badge">⏱️</span>
+              <span class="stat-value" id="stat-learning-time">28 mins</span>
+              <span class="stat-title">Learning Time</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-icon-badge">⭐</span>
+              <span class="stat-value" id="stat-total-stars">45 ⭐</span>
+              <span class="stat-title">Reward Stars</span>
+            </div>
+          </div>
+
+          <!-- Mastery vs Revision Callout Cards -->
+          <div class="mastery-status-grid">
+            <div class="mastery-box mastered">
+              <h4>Mastered Topics (High Accuracy) 🌟</h4>
+              <div id="mastered-topics-list" class="tag-cloud">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+            <div class="mastery-box revision">
+              <h4>Topics for Gentle Revision 💡</h4>
+              <div id="revision-topics-list" class="tag-cloud">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Interactive Analytics Charts (Chart.js or Canvas Fallback) -->
+          <div class="charts-dashboard-grid">
+            <div class="chart-container-card">
+              <h4 class="card-inner-title">Category-Wise Accuracy Percentage (%)</h4>
+              <div class="chart-canvas-wrapper">
+                <canvas id="chart-category-accuracy"></canvas>
+              </div>
+            </div>
+            <div class="chart-container-card">
+              <h4 class="card-inner-title">Weekly Lessons Completed</h4>
+              <div class="chart-canvas-wrapper">
+                <canvas id="chart-weekly-activity"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Activity History Timeline -->
+          <div class="timeline-container-card">
+            <h4 class="card-inner-title">Recent Learning Activity Log</h4>
+            <div id="recent-activity-timeline" class="activity-timeline-list">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ===================================================================
+             VIEW 8: TEACHER & CAREGIVER DASHBOARD
+             =================================================================== -->
+        <section id="view-teacher-dashboard" class="app-view-container">
+          <div class="view-header-row">
+            <div>
+              <h2 class="view-title">Teacher & Caregiver Portal 👩‍🏫</h2>
+              <p class="view-sub">Monitor student progress, assign learning goals, add remarks, and review observations.</p>
+            </div>
+            <div>
+              <button id="open-add-remark-btn" class="btn btn-primary" aria-label="Add observation remark">
+                <span>📝 Add Observation</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Overview Numbers -->
+          <div class="teacher-overview-cards">
+            <div class="teacher-overview-box">
+              <span class="overview-num" id="teacher-total-students">3</span>
+              <span class="overview-lbl">Active Students</span>
+            </div>
+            <div class="teacher-overview-box">
+              <span class="overview-num" id="teacher-total-completed">18</span>
+              <span class="overview-lbl">Completed Activities</span>
+            </div>
+            <div class="teacher-overview-box">
+              <span class="overview-num" id="teacher-avg-accuracy">82%</span>
+              <span class="overview-lbl">Class Average Accuracy</span>
+            </div>
+          </div>
+
+          <!-- Student Picker & Individual Analytics Detail -->
+          <div class="teacher-focus-section">
+            <div class="teacher-picker-row">
+              <label for="teacher-student-picker" class="teacher-picker-label">Select Student to Inspect:</label>
+              <select id="teacher-student-picker" class="form-control" style="max-width:320px;">
+                <!-- Rendered dynamically -->
+              </select>
+            </div>
+
+            <!-- Detailed Student Analytics Card -->
+            <div id="teacher-student-detail-card" class="teacher-detail-card">
+              <!-- Rendered via TeacherModule -->
+            </div>
+          </div>
+
+          <!-- Teacher Remarks & Caregiver Observations Feed -->
+          <div class="teacher-remarks-section">
+            <h3 class="section-title-clean">Educator Remarks & Caregiver Notes</h3>
+            <div id="teacher-remarks-container" class="remarks-feed-list">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ===================================================================
+             VIEW 9: STUDENT PROFILES
+             =================================================================== -->
+        <section id="view-student-profiles" class="app-view-container">
+          <div class="view-header-row">
+            <div>
+              <h2 class="view-title">Student Profile Management 👥</h2>
+              <p class="view-sub">Manage local student profiles, switch active learner, and customize learning levels.</p>
+            </div>
+            <div>
+              <button id="add-new-student-btn" class="btn btn-primary" aria-label="Add new student profile">
+                <span>➕ Add Student Profile</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Student Cards List -->
+          <div id="profiles-list-grid" class="profiles-grid">
+            <!-- Rendered by App.renderStudentProfilesList() -->
+          </div>
+        </section>
+
+
+        <!-- ===================================================================
+             VIEW 10: ACCESSIBILITY SETTINGS
+             =================================================================== -->
+        <section id="view-accessibility" class="app-view-container">
+          <div class="view-header-row">
+            <div>
+              <h2 class="view-title">Accessibility Settings ♿</h2>
+              <p class="view-sub">Tailor colors, fonts, spoken rate, and touch controls for your comfort. All settings persist automatically.</p>
+            </div>
+            <div>
+              <button id="test-speech-settings-btn" class="btn btn-outline" aria-label="Test voice settings">
+                <span>🔊 Test Speech Settings</span>
+              </button>
+            </div>
+          </div>
+
+          <form id="accessibility-settings-form" class="accessibility-form-grid">
+            
+            <!-- Font & Visual Scaling -->
+            <div class="settings-card-group">
+              <h3 class="group-title">👁️ Vision & Typography</h3>
+              
+              <div class="form-group">
+                <label for="setting-font-size">Font Size Scaling:</label>
+                <select id="setting-font-size" class="form-control">
+                  <option value="normal">Standard Font (16px / 1rem)</option>
+                  <option value="large">Large Font (19px / 1.18rem)</option>
+                  <option value="extra-large">Extra Large Font (22px / 1.38rem)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="setting-theme">Color Theme & Contrast:</label>
+                <select id="setting-theme" class="form-control">
+                  <option value="default">Default Soft Lavender (Calm)</option>
+                  <option value="high-contrast">High Contrast Mode (Bold Yellow on Dark Navy)</option>
+                  <option value="calm-blue">Calm Blue Theme (Sensory Friendly)</option>
+                  <option value="warm-sunset">Warm Sunset Theme (Soft Amber)</option>
+                </select>
+              </div>
+
+              <div class="checkbox-row-group">
+                <label class="checkbox-label" for="setting-reduced-motion">
+                  <input type="checkbox" id="setting-reduced-motion">
+                  <span class="custom-checkbox"></span>
+                  <span>Reduced Motion (Disable decorative bounces & transitions)</span>
+                </label>
+              </div>
+
+              <div class="checkbox-row-group">
+                <label class="checkbox-label" for="setting-large-buttons">
+                  <input type="checkbox" id="setting-large-buttons">
+                  <span class="custom-checkbox"></span>
+                  <span>Extra Large Buttons & Touch Targets (for motor accessibility)</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Voice & Audio Configuration -->
+            <div class="settings-card-group">
+              <h3 class="group-title">🎧 Audio & Voice Guidance</h3>
+
+              <div class="form-group">
+                <div class="range-header">
+                  <label for="setting-speech-rate">Spoken Instruction Rate:</label>
+                  <span id="setting-speech-rate-val" class="range-val-badge">0.9x</span>
+                </div>
+                <input type="range" id="setting-speech-rate" min="0.6" max="1.3" step="0.05" value="0.9" class="form-range" aria-label="Speech Rate Slider">
+                <small class="text-muted">Slower speech (0.8x - 0.9x) allows easier comprehension for cognitive support.</small>
+              </div>
+
+              <div class="form-group">
+                <div class="range-header">
+                  <label for="setting-volume">Audio Volume:</label>
+                  <span id="setting-volume-val" class="range-val-badge">100%</span>
+                </div>
+                <input type="range" id="setting-volume" min="0" max="1" step="0.1" value="1.0" class="form-range" aria-label="Audio Volume Slider">
+              </div>
+
+              <div class="checkbox-row-group">
+                <label class="checkbox-label" for="setting-audio-first">
+                  <input type="checkbox" id="setting-audio-first">
+                  <span class="custom-checkbox"></span>
+                  <span>Audio-First Mode (Automatically speak every card upon focus)</span>
+                </label>
+              </div>
+
+              <div class="checkbox-row-group">
+                <label class="checkbox-label" for="setting-simple-lang">
+                  <input type="checkbox" id="setting-simple-lang" checked>
+                  <span class="custom-checkbox"></span>
+                  <span>Simple Language Mode (Use brief sentences with visual cues)</span>
+                </label>
+              </div>
+            </div>
+
+          </form>
+        </section>
+
+
+        <!-- ===================================================================
+             VIEW 11: CONTENT MANAGEMENT SYSTEM (CMS)
+             =================================================================== -->
+        <section id="view-cms" class="app-view-container">
+          <div class="view-header-row">
+            <div>
+              <h2 class="view-title">Content Management System (CMS) ✏️</h2>
+              <p class="view-sub">Add custom picture lessons, edit existing activities, and tailor question sets.</p>
+            </div>
+            <div>
+              <button id="cms-add-lesson-btn" class="btn btn-primary" aria-label="Add new lesson">
+                <span>➕ Add New Lesson</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="table-responsive-container">
+            <table class="cms-table" aria-label="Lessons table">
+              <thead>
+                <tr>
+                  <th scope="col">Icon</th>
+                  <th scope="col">Title</th>
+                  <th scope="col">Category</th>
+                  <th scope="col">Difficulty</th>
+                  <th scope="col">Questions</th>
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="cms-lessons-tbody">
+                <!-- Rendered by CMSModule -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+
+        <!-- ===================================================================
+             VIEW 12: AI-INSPIRED LEARNING ASSISTANT (MILO)
+             =================================================================== -->
+        <section id="view-milo-assistant" class="app-view-container">
+          <div class="view-header-row">
+            <div>
+              <h2 class="view-title">Ask Milo - Your Learning Buddy 🦊</h2>
+              <p class="view-sub">Milo explains concepts simply, offers hints, and provides emotional encouragement.</p>
+            </div>
+          </div>
+
+          <div class="milo-chat-wrapper">
+            <!-- Milo Mascot Header Card -->
+            <div class="milo-chat-header">
+              <div class="milo-mascot-placeholder" data-size="64"></div>
+              <div>
+                <h3 style="margin:0;font-size:1.2rem;">Milo (Rule-Based Educational Buddy)</h3>
+                <span class="milo-badge-rule">Transparent Rule-Based Support • Emotional Safety</span>
+              </div>
+            </div>
+
+            <!-- Predefined Quick Questions Chips -->
+            <div class="milo-quick-questions-tray" aria-label="Quick questions for Milo">
+              <button class="milo-quick-chip">What is red? 🔴</button>
+              <button class="milo-quick-chip">What is a circle? ⭕</button>
+              <button class="milo-quick-chip">Tell me about dogs 🐕</button>
+              <button class="milo-quick-chip">I feel confused / help me 🫂</button>
+              <button class="milo-quick-chip">How do I wash hands? 🧼</button>
+            </div>
+
+            <!-- Messages Stream -->
+            <div id="milo-chat-messages" class="milo-messages-stream" role="log" aria-live="polite">
+              <div class="chat-bubble milo-bubble">
+                <div class="milo-bubble-avatar">🦊</div>
+                <div class="bubble-content">
+                  <div class="bubble-text">
+                    Hello my dear friend! I am Milo. Whenever you feel stuck or want to know what a colour, animal, or shape is, just ask me! 🌟
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Input Bar -->
+            <form id="milo-chat-form" class="milo-input-form">
+              <button type="button" id="milo-chat-voice-btn" class="btn-icon-soft voice-input-btn" title="Speak to Milo" aria-label="Voice input">
+                <span aria-hidden="true">🎤</span>
+              </button>
+              <input type="text" id="milo-chat-input" class="form-control" placeholder="Ask Milo anything (e.g. What is blue? or Help me)..." aria-label="Ask Milo a question">
+              <button type="submit" class="btn btn-primary" aria-label="Send message">
+                <span>Send</span> <span aria-hidden="true">💬</span>
+              </button>
+            </form>
+          </div>
+        </section>
+
+
+        <!-- ===================================================================
+             VIEW 13: DAILY-LIFE SKILLS MODULE
+             =================================================================== -->
+        <section id="view-daily-skills" class="app-view-container">
+          <div class="view-header-row">
+            <div>
+              <h2 class="view-title">Daily-Life Skills & Habits 🧼</h2>
+              <p class="view-sub">Interactive visual routines for personal hygiene, daily schedules, road safety, and polite communication.</p>
+            </div>
+          </div>
+
+          <!-- Category Filter Chips -->
+          <div id="daily-skills-chips" class="category-chips-bar" role="toolbar" aria-label="Filter skills by category">
+            <!-- Rendered by DailySkillsModule -->
+          </div>
+
+          <!-- Skills Cards Container -->
+          <div id="daily-skills-cards-grid" class="daily-skills-grid">
+            <!-- Rendered by DailySkillsModule -->
+          </div>
+        </section>
+
+
+        <!-- ===================================================================
+             VIEW 14: REPORTS & ANALYTICS (Caregiver View)
+             =================================================================== -->
+        <section id="view-reports" class="app-view-container">
+          <div class="view-header-row">
+            <div>
+              <h2 class="view-title">Student Performance Report 📄</h2>
+              <p class="view-sub">Comprehensive printable summary for individualized educational programs (IEP) and parent meetings.</p>
+            </div>
+            <div class="report-export-buttons">
+              <button onclick="window.ProgressModule.exportCSV()" class="btn btn-outline">📥 Export CSV</button>
+              <button onclick="window.ProgressModule.printReport()" class="btn btn-primary">🖨️ Print IEP Report</button>
+            </div>
+          </div>
+
+          <!-- Printable Report Container Card -->
+          <div class="printable-report-card" id="printable-report-area">
+            <div class="report-header-banner">
+              <h2>ACCESSIBLE LEARNING COMPANION</h2>
+              <h3>Student Progress & Adaptive IEP Summary Report</h3>
+              <p class="text-muted">Generated from local computer-based learning records</p>
+            </div>
+
+            <div class="report-meta-grid">
+              <div><strong>Report Date:</strong> <span id="report-date-str">November 2026</span></div>
+              <div><strong>Platform Mode:</strong> Local Storage Demonstration Prototype</div>
+              <div><strong>Target Audience:</strong> Students with Intellectual & Developmental Disabilities</div>
+              <div><strong>Reinforcement Method:</strong> Positive Reinforcement Only (Zero Negative Penalties)</div>
+            </div>
+
+            <hr style="margin:20px 0;border:none;border-top:1px solid var(--color-border);">
+
+            <h4>Learning Summary Observations</h4>
+            <p>
+              The student interacts with picture-based representations across colours, numbers, shapes, animals, everyday objects, and life skills. The adaptive learning engine dynamically adjusts distractor counts and provides auditory scaffolding when repeated retries occur.
+            </p>
+          </div>
+        </section>
+
+
+        <!-- ===================================================================
+             VIEW 15: APPLICATION SETTINGS
+             =================================================================== -->
+        <section id="view-app-settings" class="app-view-container">
+          <div class="view-header-row">
+            <div>
+              <h2 class="view-title">Application Settings ⚙️</h2>
+              <p class="view-sub">Manage data backups, system preferences, and platform information.</p>
+            </div>
+          </div>
+
+          <div class="app-settings-grid">
+            <div class="settings-card-group">
+              <h3 class="group-title">💾 Data Backup & Restore</h3>
+              <p>Export all student profiles, completed activities, and remarks into a JSON file for safe record keeping.</p>
+              <div style="display:flex;gap:12px;margin-top:16px;">
+                <button id="settings-export-json-btn" class="btn btn-primary">
+                  <span>📥 Export JSON Backup</span>
+                </button>
+                <button id="settings-reset-data-btn" class="btn btn-outline" style="color:var(--color-error);border-color:var(--color-error);">
+                  <span>⚠️ Reset to Defaults</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="settings-card-group">
+              <h3 class="group-title">ℹ️ About the Application</h3>
+              <p><strong>Accessible Learning Companion</strong></p>
+              <p>Version: <strong>2.4.0 (Accessible Edition)</strong></p>
+              <p class="text-muted" style="margin-top:8px;">
+                Engineered with HTML5, CSS3, Vanilla ES6+ JavaScript, Web Speech API for Text-to-Speech & Speech Recognition, and Web Audio API synthesizer. Runs completely client-side in any modern web browser.
+              </p>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <!-- FLOATING MILO COMPANION WIDGET -->
+    <div id="floating-milo-container" class="floating-milo-dock" aria-label="Milo Companion Quick Help">
+      <!-- Populated via MiloMascot.renderFloatingMascot() -->
+    </div>
+
+    <!-- CELEBRATORY FULL-SCREEN CONFETTI CANVAS -->
+    <canvas id="confetti-canvas" class="confetti-canvas" aria-hidden="true"></canvas>
+
+    <!-- ACCESSIBLE TOAST NOTIFICATIONS CONTAINER -->
+    <div id="global-toast-container" class="toast-notifications-container" aria-live="polite" aria-atomic="true"></div>
+
+  </div>
+
+
+  <!-- =========================================================================
+       GLOBAL LESSON DETAIL MODAL (Viewer with Audio TTS & Interactive Check)
+       ========================================================================= -->
+  <div id="lesson-detail-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-lesson-title" aria-hidden="true">
+    <div class="modal-card modal-card-lg">
+      <div class="modal-header">
+        <h3 id="modal-lesson-title">Lesson Title</h3>
+        <button id="close-lesson-modal-btn" class="modal-close-btn" aria-label="Close lesson">✖</button>
+      </div>
+
+      <div class="modal-body modal-scrollable">
+        <!-- Large Visual Representation (No broken placeholders!) -->
+        <div id="modal-lesson-visual-container" class="lesson-modal-visual-hero"></div>
+
+        <!-- Audio controls row inside modal -->
+        <div class="modal-audio-controls-row">
+          <button id="lesson-modal-repeat-audio-btn" class="btn btn-secondary btn-sm" aria-label="Repeat Audio Explanation">
+            <span aria-hidden="true">🔁</span> Repeat Spoken Audio
+          </button>
+        </div>
+
+        <!-- Short Explanation -->
+        <p id="modal-lesson-explanation" class="modal-lesson-explanation-text"></p>
+
+        <!-- Interactive Question Check -->
+        <div id="modal-lesson-practice-container" class="modal-practice-wrapper"></div>
+      </div>
+
+      <div class="modal-footer modal-footer-spaced">
+        <button id="lesson-modal-prev-btn" class="btn btn-secondary" aria-label="Previous Lesson">
+          <span aria-hidden="true">⬅️</span> Previous
+        </button>
+        <button id="lesson-modal-next-btn" class="btn btn-primary" aria-label="Next Lesson">
+          Next Lesson <span aria-hidden="true">➡️</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- =========================================================================
+       MODULAR JAVASCRIPT SCRIPTS
+       ========================================================================= -->
+  <script src="js/storage.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/milo.js"></script>
+  <script src="js/adaptive.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/lessons.js"></script>
+  <script src="js/activities.js"></script>
+  <script src="js/daily-skills.js"></script>
+  <script src="js/progress.js"></script>
+  <script src="js/teacher.js"></script>
+  <script src="js/accessibility.js"></script>
+  <script src="js/cms.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
